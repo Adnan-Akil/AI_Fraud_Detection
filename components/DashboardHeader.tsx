@@ -15,8 +15,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ isSimulating, 
   return (
     <header className="bg-gray-800 p-4 border-b border-gray-700 flex flex-col sm:flex-row justify-between items-center">
       <div className="mb-4 sm:mb-0">
-        <h1 className="text-2xl font-bold text-teal-500">AI Fraud Detection Simulator</h1>
-        <p className="text-sm text-gray-400">Real-time transaction analysis powered by Gemini</p>
+        <h1 className="text-2xl font-bold text-teal-500">Bank Fraud Detector</h1>
+        <p className="text-sm text-gray-400">Real-time transaction analysis powered by AI</p>
       </div>
       <div className="flex items-center space-x-4">
         <div className="text-center">
