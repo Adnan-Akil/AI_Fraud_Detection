@@ -1,0 +1,5 @@
+
+{
+  "name": "AI Fraud Detection Simulator",
+  "description": "A real-time simulation of a fraud detection system for bank transactions, powered by the Gemini API. This application generates synthetic transaction data, analyzes it for fraudulent patterns using AI, and provides detailed explanations for flagged transactions in a modern dashboard interface."
+}
