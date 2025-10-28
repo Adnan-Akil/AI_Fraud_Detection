@@ -1,7 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { GoogleGenAI, Type } from '@google/genai';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import Groq from "groq-sdk";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -13,77 +13,69 @@ const port = 3001;
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Enable parsing of JSON request bodies
 
-// Initialize Gemini AI
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY is not defined in the .env file.");
+// Initialize GROQ client
+if (!process.env.GROQ_API_KEY) {
+  throw new Error("GROQ_API_KEY is not defined in the .env file.");
 }
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const fraudDetectionSchema = {
-  type: Type.OBJECT,
-  properties: {
-    isFraud: {
-      type: Type.BOOLEAN,
-      description: 'Is the transaction likely fraudulent?',
-    },
-    reason: {
-      type: Type.STRING,
-      description: 'A detailed explanation for the fraud assessment. If not fraud, state that it appears normal and why. If it is fraud, explain the indicators.',
-    },
-    fraudScore: {
-      type: Type.NUMBER,
-      description: 'A score from 0 (not fraud) to 100 (definitely fraud).',
-    },
-  },
-  required: ['isFraud', 'reason', 'fraudScore'],
-};
+const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
 
 // API endpoint for analyzing transactions
-app.post('/analyze-transaction', async (req, res) => {
+app.post("/analyze-transaction-groq", async (req, res) => {
   const transaction = req.body;
 
   if (!transaction) {
-    return res.status(400).json({ error: 'Transaction data is required.' });
+    return res.status(400).json({ error: "Transaction data is required." });
   }
 
   try {
     const transactionString = JSON.stringify(transaction, null, 2);
 
-    const systemInstruction = `
-      You are a highly advanced AI fraud detection engine for a bank.
-      Your task is to analyze bank transactions and determine if they are fraudulent.
-      
-      Consider these fraud indicators:
-      1.  **High Amount:** Is the transaction amount significantly higher than the user's typical spending range?
-      2.  **Unusual Location:** Is the transaction occurring in a country different from the user's home country?
-      3.  **Rapid Transactions:** (Context not provided in single transaction, but be aware of this pattern).
-      4.  **Merchant Type:** Is the merchant unusual for this user? (Context not provided).
+    const prompt = `You are a highly advanced AI fraud detection engine for a bank.
+Your task is to analyze bank transactions and determine if they are fraudulent.
 
-      Analyze the following transaction and return your assessment in the specified JSON format.
-      Provide a concise, clear reason for your decision.
-    `;
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Analyze this transaction: ${transactionString}`,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: fraudDetectionSchema,
-      },
+Consider these fraud indicators:
+1. High Amount: Is the transaction amount significantly higher than the user's typical spending range?
+2. Unusual Location: Is the transaction occurring in a country different from the user's home country?
+3. Rapid Transactions: (Context not provided in single transaction, but be aware of this pattern)
+4. Merchant Type: Is the merchant unusual for this user? (Context not provided)
+
+Analyze this transaction: ${transactionString}
+
+Respond with ONLY a valid JSON object containing exactly these fields:
+{
+  "isFraud": boolean,        // true if fraudulent, false if legitimate
+  "reason": string,         // detailed explanation for the assessment
+  "fraudScore": number      // 0-100 score, higher means more likely fraud
+}`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "meta-llama/llama-4-scout-17b-16e-instruct", // Using Llama 3 model
+      temperature: 0.3, // Lower temperature for more consistent output
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
     });
 
-    const jsonText = response.text.trim();
-    const result = JSON.parse(jsonText);
-    
-    res.json(result);
+    const result = JSON.parse(completion.choices[0]?.message?.content || "{}");
 
+    // Validate the response has all required fields
+    if (
+      typeof result.isFraud !== "boolean" ||
+      typeof result.reason !== "string" ||
+      typeof result.fraudScore !== "number"
+    ) {
+      throw new Error("Invalid response format from GROQ API");
+    }
+
+    res.json(result);
   } catch (error) {
-    console.error("Error analyzing transaction with Gemini API:", error);
+    console.error("Error analyzing transaction with GROQ API:", error);
     // Send a generic error response, but also a fallback analysis object
     res.status(500).json({
       isFraud: true,
-      reason: "An error occurred during AI analysis on the server. Flagging as potential fraud for manual review.",
+      reason:
+        "An error occurred during AI analysis on the server. Flagging as potential fraud for manual review.",
       fraudScore: 80,
     });
   }
@@ -91,5 +83,7 @@ app.post('/analyze-transaction', async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Backend server is running on http://localhost:${port}`);
-  console.log('To start: create a .env file with your API_KEY, run "npm install", then "npm start".');
+  console.log(
+    'To start: create a .env file with GROQ_API_KEY=your_key_here, run "npm install", then "npm start".'
+  );
 });

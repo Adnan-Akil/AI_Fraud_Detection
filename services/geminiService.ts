@@ -1,7 +1,7 @@
 import { Transaction, FraudAnalysisResult } from '../types';
 
 // The backend server URL
-const API_URL = 'http://localhost:3001/analyze-transaction';
+const API_URL = 'http://localhost:3001/analyze-transaction-groq';
 
 export const analyzeTransaction = async (transaction: Transaction): Promise<FraudAnalysisResult> => {
   try {

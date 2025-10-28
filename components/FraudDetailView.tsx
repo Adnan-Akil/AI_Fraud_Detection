@@ -28,7 +28,7 @@ export const FraudDetailView: React.FC<FraudDetailViewProps> = ({ transaction })
   return (
     <div className="bg-gray-800 p-6 rounded-lg h-full flex flex-col">
       <h2 className="text-lg font-bold mb-4">Transaction Analysis</h2>
-      <div className="flex-grow overflow-y-auto pr-2">
+      <div className="flex-grow overflow-y-auto pr-2 hide-scrollbar">
         <div className={`p-4 rounded-lg mb-4 border ${isFraud ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/10 border-green-500/20'}`}>
           <div className="flex justify-between items-center mb-3">
             <h3 className={`text-xl font-semibold ${isFraud ? 'text-red-400' : 'text-green-400'}`}>

@@ -12,7 +12,7 @@ interface TransactionItemProps {
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onSelect, isSelected }) => {
   const isFraud = transaction.analysis.isFraud;
   const cardColor = isFraud ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/5 border-transparent';
-  const selectedColor = isSelected ? 'ring-2 ring-teal-500' : 'hover:bg-gray-700/50';
+  const selectedColor = isSelected ? 'ring-2 ring-white' : 'hover:bg-gray-700/50';
 
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',

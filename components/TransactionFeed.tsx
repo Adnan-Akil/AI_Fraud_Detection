@@ -25,7 +25,7 @@ export const TransactionFeed: React.FC<TransactionFeedProps> = ({ transactions, 
         Live Transaction Feed
         {isSimulating && <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse-fast"></span>}
       </h2>
-      <div className="overflow-y-auto flex-grow pr-2">
+      <div className="overflow-y-auto flex-grow pr-2 hide-scrollbar">
         <ul ref={feedRef}>
           {transactions.length === 0 && (
             <li className="text-center text-gray-400 py-10">

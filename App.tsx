@@ -28,7 +28,7 @@ const App: React.FC = () => {
     }));
 
     // If it's the first transaction, select it.
-    if (stats.total === 0) {
+    if (!selectedTransaction) {
         setSelectedTransaction(processed);
     }
 
